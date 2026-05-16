@@ -1,0 +1,350 @@
+<!DOCTYPE html>
+<html lang="ar">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>BK DUHOK - Master Comprehensive Exam System</title>
+    <style>
+        :root { --bk-red: #DA291C; --bk-yellow: #F2A900; --bk-brown: #502314; --bk-cream: #F5EBDF; --bk-white: #ffffff; }
+        body { font-family: 'Segoe UI', Tahoma, sans-serif; background-color: var(--bk-cream); color: var(--bk-brown); margin: 0; display: flex; justify-content: center; align-items: center; min-height: 100vh; }
+        .container { background: var(--bk-white); width: 95%; max-width: 850px; padding: 25px; border-radius: 25px; border: 6px solid var(--bk-brown); box-shadow: 0 15px 35px rgba(0,0,0,0.15); text-align: center; }
+        .logo-img { width: 100px; margin-bottom: 10px; }
+        h1 { color: var(--bk-red); margin: 5px 0; font-size: 22px; text-transform: uppercase; }
+        .lang-btn { background: var(--bk-brown); color: white; border: none; padding: 12px 25px; border-radius: 12px; cursor: pointer; margin: 5px; font-weight: bold; }
+        .lang-btn:hover { background: var(--bk-red); }
+        input, select { width: 100%; padding: 12px; margin: 8px 0; border: 2px solid var(--bk-brown); border-radius: 10px; font-size: 15px; text-align: center; box-sizing: border-box; }
+        button.primary { background-color: var(--bk-yellow); color: var(--bk-brown); border: 3px solid var(--bk-brown); padding: 12px; font-size: 16px; font-weight: bold; border-radius: 12px; cursor: pointer; width: 100%; margin-top: 10px; }
+        button.primary:hover { background-color: var(--bk-red); color: white; }
+        .hidden { display: none !important; }
+        .q-card { text-align: inherit; margin: 20px 0; font-size: 18px; line-height: 1.5; font-weight: bold; padding: 15px; background: #fffcf5; border-radius: 15px; }
+        .option-btn { display: block; width: 100%; text-align: inherit; padding: 12px; margin: 8px 0; background: #fff; border: 2px solid #ddd; border-radius: 10px; cursor: pointer; font-size: 15px; }
+        .option-btn:hover { border-color: var(--bk-yellow); background: #fffef9; }
+        .admin-section { background: #f1f1f1; padding: 15px; border-radius: 15px; margin-bottom: 20px; text-align: right; }
+        .en-mode .admin-section { text-align: left; }
+        table { width: 100%; border-collapse: collapse; margin-top: 15px; font-size: 11px; background: white; }
+        th, td { border: 1px solid #ddd; padding: 8px; text-align: center; }
+        th { background: var(--bk-yellow); }
+        .ar-mode { direction: rtl; }
+        .en-mode { direction: ltr; }
+    </style>
+</head>
+<body class="ar-mode">
+
+<div id="view-lang" class="container">
+    <img src="https://upload.wikimedia.org/wikipedia/commons/thumb/8/85/Burger_King_logo_%282021%29.svg/1024px-Burger_King_logo_%282021%29.svg.png" class="logo-img">
+    <h1>BK DUHOK EXAM</h1>
+    <p>Choose Language / اختر اللغة</p>
+    <button class="lang-btn" onclick="setLang('en')">English</button>
+    <button class="lang-btn" onclick="setLang('ar')">العربية</button>
+</div>
+
+<div id="view-login" class="container hidden">
+    <h2 id="txt-login-head">تسجيل الدخول للنظام</h2>
+    <input type="text" id="login-id" placeholder="ID">
+    <input type="password" id="login-pass" placeholder="Password">
+    <button class="primary" onclick="handleLogin()" id="btn-login-exec">دخول</button>
+    <p style="font-size: 11px; color: #999; margin-top: 15px; cursor: pointer;" onclick="resetData()">System Reset (إعادة ضبط النظام)</p>
+</div>
+
+<div id="view-exam" class="container hidden">
+    <div style="display: flex; justify-content: space-between; border-bottom: 2px solid #eee; padding-bottom: 5px; font-size: 14px;">
+        <span id="q-count">1/20</span>
+        <span id="active-user-display">...</span>
+    </div>
+    <div id="q-text" class="q-card"></div>
+    <div id="options-area"></div>
+    <input type="text" id="write-area" class="hidden" placeholder="Type answer here / اكتب الإجابة هنا...">
+    <button id="next-btn" class="primary hidden" onclick="submitTextAnswer()">تأكيد الإجابة / Confirm</button>
+</div>
+
+<div id="view-result" class="container hidden">
+    <h2 id="res-msg">النتيجة النهائية</h2>
+    <h1 id="score-val" style="font-size: 50px; color: var(--bk-red);">0%</h1>
+    <div id="result-details" style="text-align: inherit; max-height: 300px; overflow-y: auto; padding: 10px; border: 1px solid #eee; background: #fafafa;"></div>
+    <button class="primary" onclick="location.reload()">الخروج / Exit</button>
+</div>
+
+<div id="view-admin" class="container hidden" style="max-width: 850px;">
+    <h2 id="admin-title">لوحة تحكم مدير المتجر (Store Manager)</h2>
+    <div class="admin-section">
+        <strong id="admin-add-txt">إضافة موظف أو مدير جديد:</strong>
+        <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 8px; margin-top: 10px;">
+            <input type="text" id="new-id" placeholder="ID">
+            <input type="text" id="new-name" placeholder="Name/الاسم">
+            <input type="text" id="new-pass" placeholder="Password">
+            <select id="new-role">
+                <option value="staff">موظف (Staff)</option>
+                <option value="admin">مدير (Admin)</option>
+            </select>
+        </div>
+        <button class="primary" onclick="addUser()">حفظ البيانات / Save</button>
+    </div>
+    <div style="overflow-x: auto;">
+        <table>
+            <thead><tr><th>ID</th><th>Name</th><th>Role</th><th>Pass</th><th>Last Score</th><th>Action</th></tr></thead>
+            <tbody id="users-list"></tbody>
+        </table>
+    </div>
+    <button class="primary" onclick="location.reload()" style="background: var(--bk-brown); color: white; margin-top: 15px;">تسجيل خروج / Logout</button>
+</div>
+
+<script>
+    let currentLang = 'ar';
+    let users = [];
+    let currentExam = [];
+    let currentIdx = 0;
+    let score = 0;
+    let mistakes = [];
+    let sessionUser = null;
+
+    const MASTER_BANK = [
+          // --- مكونات السندوتشات والأوزان بالتفصيل ---
+        { q_ar: "ما هو وزن المايونيز في سندوتش Whopper؟", q_en: "Mayo weight in Whopper?", type: "mcq", opt_ar: ["14g", "21g", "28g"], opt_en: ["14g", "21g", "28g"], a: "21g" },
+        { q_ar: "ما هو وزن الخس في سندوتش Whopper؟", q_en: "Lettuce weight in Whopper?", type: "mcq", opt_ar: ["14g", "21g", "28g"], opt_en: ["14g", "21g", "28g"], a: "21g" },
+        { q_ar: "كم شريحة طماطم توضع في سندوتش Whopper القياسي؟", q_en: "Tomato slices count in Whopper?", type: "mcq", opt_ar: ["1", "2", "3"], opt_en: ["1", "2", "3"], a: "2" },
+        { q_ar: "كم شريحة مخلل توضع في سندوتش Whopper القياسي؟", q_en: "Pickles count in Whopper?", type: "mcq", opt_ar: ["2", "4", "6"], opt_en: ["2", "4", "6"], a: "4" },
+        { q_ar: "ما هو وزن الكاتشب في سندوتش Whopper؟", q_en: "Ketchup weight in Whopper?", type: "mcq", opt_ar: ["9g", "14g", "21g"], opt_en: ["9g", "14g", "21g"], a: "14g" },
+        { q_ar: "ما هو وزن البصل في سندوتش Whopper؟", q_en: "Onion weight in Whopper?", type: "mcq", opt_ar: ["7g", "14g", "17g"], opt_en: ["7g", "14g", "17g"], a: "14g" },
+        { q_ar: "كم شريحة مخلل توضع في سندوتش XL Cheeseburger؟", q_en: "Pickles count in XL Cheeseburger?", type: "mcq", opt_ar: ["4", "10", "14"], opt_en: ["4", "10", "14"], a: "14" },
+        { q_ar: "ما هو وزن صوص الخردل (Mustard) في XL Cheeseburger؟", q_en: "Mustard weight in XL Cheeseburger?", type: "mcq", opt_ar: ["7g", "9g", "14g"], opt_en: ["7g", "9g", "14g"], a: "9g" },
+        { q_ar: "ما هو وزن الكاتشب في سندوتش XL Cheeseburger؟", q_en: "Ketchup weight in XL Cheeseburger?", type: "mcq", opt_ar: ["9g", "14g", "21g"], opt_en: ["9g", "14g", "21g"], a: "14g" },
+        { q_ar: "ما هو وزن صوص البيج كينج في سندوتش Big King XL؟", q_en: "Big King sauce weight in Big King XL?", type: "mcq", opt_ar: ["14g", "21g", "28g"], opt_en: ["14g", "21g", "28g"], a: "28g" },
+        { q_ar: "كم شريحة مخلل توضع في سندوتش Big King XL؟", q_en: "Pickles count in Big King XL?", type: "mcq", opt_ar: ["2", "4", "6"], opt_en: ["2", "4", "6"], a: "4" },
+        { q_ar: "ما هو وزن المايونيز في سندوتش Whopper Junior على الـ Crown؟", q_en: "Mayo weight on Crown in Whopper Junior?", type: "mcq", opt_ar: ["7g", "11g", "14g"], opt_en: ["7g", "11g", "14g"], a: "11g" },
+        { q_ar: "ما هو وزن الخس في سندوتش Whopper Junior؟", q_en: "Lettuce weight in Whopper Junior?", type: "mcq", opt_ar: ["11g", "14g", "21g"], opt_en: ["11g", "14g", "21g"], a: "11g" },
+        { q_ar: "كم شريحة مخلل توضع في سندوتش Whopper Junior؟", q_en: "Pickles count in Whopper Junior?", type: "mcq", opt_ar: ["2", "3", "4"], opt_en: ["2", "3", "4"], a: "2" },
+        { q_ar: "ما هو وزن البصل في سندوتش Whopper Junior؟", q_en: "Onion weight in Whopper Junior?", type: "mcq", opt_ar: ["7g", "14g", "17g"], opt_en: ["7g", "14g", "17g"], a: "17g" },
+        { q_ar: "كم شريحة جبن توضع في سندوتش Big King XXL وتوزيعها؟", q_en: "Cheese slices count in Big King XXL?", type: "mcq", opt_ar: ["2 slices", "3 slices", "4 slices"], opt_en: ["2 slices", "3 slices", "4 slices"], a: "4 slices" },
+        { q_ar: "ما هو حجم خبز سندوتش Steakhouse القياسي؟", q_en: "Bun size for Steakhouse sandwich?", type: "mcq", opt_ar: ["4\" Bun", "4.5\" Corn Dusted", "5\" Bun"], opt_en: ["4\" Bun", "4.5\" Corn Dusted", "5\" Bun"], a: "4.5\" Corn Dusted" },
+        { q_ar: "كم غرام من البصل المقرمش (Crispy Onion) يوضع على الـ Crown في Steakhouse؟", q_en: "Crispy onion weight on Crown in Steakhouse?", type: "mcq", opt_ar: ["11g", "14g", "21g"], opt_en: ["11g", "14g", "21g"], a: "14g" },
+        { q_ar: "كم غرام من صوص الـ BBQ يوضع في سندوتش Steakhouse؟", q_en: "BBQ sauce weight in Steakhouse?", type: "mcq", opt_ar: ["11g", "14g", "21g"], opt_en: ["11g", "14g", "21g"], a: "14g" },
+        { q_ar: "كم غرام مايونيز يوضع في Chicken Royal على الـ Crown والـ Heel (لكل جهة)؟", q_en: "Mayo weight on Crown/Heel in Chicken Royal?", type: "mcq", opt_ar: ["11g", "14g", "21g"], opt_en: ["11g", "14g", "21g"], a: "14g" },
+        { q_ar: "ما هو وزن الخس في سندوتش Chicken TenderCrispy? ", q_en: "Lettuce weight in Chicken TenderCrispy?", type: "mcq", opt_ar: ["14g", "21g", "28g"], opt_en: ["14g", "21g", "28g"], a: "21g" },
+        { q_ar: "كم كمية البصل وشريحاته في سندوتش BigKing Chicken؟", q_en: "Onion weight and slices in BigKing Chicken?", type: "mcq", opt_ar: ["7g (2 slices)", "14g (4 slices)", "11g (3 slices)"], opt_en: ["7g (2 slices)", "14g (4 slices)", "11g (3 slices)"], a: "7g (2 slices)" },
+        { q_ar: "كم كمية المايونيز والخس المضافة في الـ Classic Wrap؟", q_en: "Mayo & Lettuce weight in Classic Wrap?", type: "mcq", opt_ar: ["7g", "11g", "14g"], opt_en: ["7g", "11g", "14g"], a: "11g" },
+        { q_ar: "كم كمية صوص الخردل بالعسل في Honey Mustard Wrap؟", q_en: "Honey Mustard sauce in Honey Mustard Wrap?", type: "mcq", opt_ar: ["7g", "11g", "14g"], opt_en: ["7g", "11g", "14g"], a: "11g" },
+        { q_ar: "ما هو وزن الكاتشب المضاف لسندوتش King Jr. Cheese Burger؟", q_en: "Ketchup weight in King Jr. Cheese Burger?", type: "mcq", opt_ar: ["7g", "9g", "14g"], opt_en: ["7g", "9g", "14g"], a: "9g" },
+        { q_ar: "ما هو وزن الكاتشب المضاف لسندوتش King Jr. Chicken Burger؟", q_en: "Ketchup weight in King Jr. Chicken Burger?", type: "mcq", opt_ar: ["9g", "14g", "19g"], opt_en: ["9g", "14g", "19g"], a: "19g" },
+        { q_ar: "كم شريحة هالابينو (Jalapenos) توضع في Spicy Chicken Deluxe؟", q_en: "Jalapenos count in Spicy Chicken Deluxe?", type: "mcq", opt_ar: ["2", "4", "6"], opt_en: ["2", "4", "6"], a: "4" },
+        { q_ar: "ما هو وزن صوص النار (Fiery Sauce) في Spicy Chicken Deluxe؟", q_en: "Fiery sauce weight in Spicy Chicken Deluxe?", type: "mcq", opt_ar: ["7g", "14g", "21g"], opt_en: ["7g", "14g", "21g"], a: "14g" },
+        { q_ar: "كم غرام من صوص الـ Spicy يوضع في الـ Spicy Wrap؟", q_en: "Spicy sauce weight in Spicy Wrap?", type: "mcq", opt_ar: ["5g", "7g", "11g"], opt_en: ["5g", "7g", "11g"], a: "7g" },
+        { q_ar: "ما هو وزن البطاطس للحجم الصغير جداً (Value Fries)؟", q_en: "Weight of Value Fries?", type: "mcq", opt_ar: ["74g", "90g", "159g"], opt_en: ["74g", "90g", "159g"], a: "74g" },
+        { q_ar: "ما هو وزن البطاطس للحجم العادي (Regular Fries)؟", q_en: "Weight of Regular Fries?", type: "mcq", opt_ar: ["74g", "90g", "159g"], opt_en: ["74g", "90g", "159g"], a: "90g" },
+        { q_ar: "ما هو وزن البطاطس للحجم الكبير (Large Fries)؟", q_en: "Weight of Large Fries?", type: "mcq", opt_ar: ["74g", "90g", "159g"], opt_en: ["74g", "90g", "159g"], a: "159g" },
+        { q_ar: "ما هو وزن خليط الآيس كريم في بسكويت الكورنيه (Ice Cream Cone)؟", q_en: "Ice cream mix weight in Cone?", type: "mcq", opt_ar: ["65g", "130g", "140g"], opt_en: ["65g", "130g", "140g"], a: "65g" },
+        { q_ar: "ما هو وزن خليط الآيس كريم في أكواب الـ Sundae؟", q_en: "Ice cream mix weight in Sundae cups?", type: "mcq", opt_ar: ["65g", "130g", "150g"], opt_en: ["65g", "130g", "150g"], a: "130g" },
+        { q_ar: "كم غرام من الصوص (شوكولاتة/كاراميل/فراولة) يوضع فوق الآيس كريم سونداي؟", q_en: "Sauce weight on Sundae ice cream?", type: "mcq", opt_ar: ["15g", "20g", "25g"], opt_en: ["15g", "20g", "25g"], a: "20g" },
+        { q_ar: "ما هو وقت طهي لحم البرجر العادي (Burger)؟", q_en: "Cooking time for Burger patty?", type: "mcq", opt_ar: ["1:30", "1:50-2:00", "2:00-2:30"], opt_en: ["1:30", "1:50-2:00", "2:00-2:30"], a: "1:50-2:00" },
+        { q_ar: "ما هو وقت طهي لحم الـ Whopper؟", q_en: "Cooking time for Whopper patty?", type: "mcq", opt_ar: ["1:50-2:00", "2:00-2:30", "4:00-4:30"], opt_en: ["1:50-2:00", "2:00-2:30", "4:00-4:30"], a: "2:00-2:30" },
+        { q_ar: "ما هو وقت طهي لحم الـ Gourmet؟", q_en: "Cooking time for Gourmet patty?", type: "mcq", opt_ar: ["2:00-2:30", "3:15", "4:00-4:30"], opt_en: ["2:00-2:30", "3:15", "4:00-4:30"], a: "4:00-4:30" },
+        { q_ar: "ما هو أقصى عدد من لحم الـ Whopper يسمح بحفظه في الـ Pan الواحدة؟", q_en: "Max Whopper patties per pan?", type: "mcq", opt_ar: ["6", "8", "12"], opt_en: ["6", "8", "12"], a: "8" },
+        { q_ar: "ما هو أقصى عدد من لحم البرجر العادي يسمح بحفظه في الـ Pan الواحدة؟", q_en: "Max Burger patties per pan?", type: "mcq", opt_ar: ["6", "8", "12"], opt_en: ["6", "8", "12"], a: "12" },
+        { q_ar: "ما هو وقت طهي الدجاج لسندوتش Chicken Royal؟", q_en: "Cooking time for Chicken Royal?", type: "mcq", opt_ar: ["2:45", "3:15", "4:30"], opt_en: ["2:45", "3:15", "4:30"], a: "3:15" },
+        { q_ar: "ما هو وقت طهي الـ Tender Crispy؟", q_en: "Cooking time for Tender Crispy?", type: "mcq", opt_ar: ["3:15", "4:15", "4:30"], opt_en: ["3:15", "4:15", "4:30"], a: "4:30" },
+        { q_ar: "ما هو أقصى وقت لحفظ الـ Chicken Royal في الـ Pan؟", q_en: "Max holding time for Chicken Royal?", type: "mcq", opt_ar: ["30 MIN", "60 MIN", "90 MIN"], opt_en: ["30 MIN", "60 MIN", "90 MIN"], a: "90 MIN" },
+        { q_ar: "ما هو وقت طهي البطاطس المقلية (French Fries)؟", q_en: "Cooking time for French Fries?", type: "mcq", opt_ar: ["2:00", "3:15", "3:30"], opt_en: ["2:00", "3:15", "3:30"], a: "3:30" },
+        { q_ar: "ما هو وقت طهي حلقات البصل (Onion Rings)؟", q_en: "Cooking time for Onion Rings?", type: "mcq", opt_ar: ["1:30", "2:00", "2:45"], opt_en: ["1:30", "2:00", "2:45"], a: "1:30" },
+        { q_ar: "ما هو وقت طهي الـ Chicken Nuggets؟", q_en: "Cooking time for Chicken Nuggets?", type: "mcq", opt_ar: ["2:00", "2:45", "3:15"], opt_en: ["2:00", "2:45", "3:15"], a: "3:15" },
+        { q_ar: "ما هو وقت طهي الـ Chicken Tenders؟", q_en: "Cooking time for Chicken Tenders?", type: "mcq", opt_ar: ["2:00", "2:45", "3:15"], opt_en: ["2:00", "2:45", "3:15"], a: "2:45" },
+        { q_ar: "ما هو وقت طهي أصابع الموزاريلا (Mini Mozzarella Sticks)؟", q_en: "Cooking time for Mozzarella Sticks?", type: "mcq", opt_ar: ["1:30", "2:00", "4:15"], opt_en: ["1:30", "2:00", "4:15"], a: "2:00" },
+        { q_ar: "ما هو وقت طهي أجنحة الدجاج (Chicken Wings)؟", q_en: "Cooking time for Chicken Wings?", type: "mcq", opt_ar: ["3:30", "4:15", "4:30"], opt_en: ["3:30", "4:15", "4:30"], a: "4:15" },
+        { q_ar: "ما هي مدة حفظ البطاطس المقلية في حوض الـ Air Heated Dump؟", q_en: "Max holding time for Fries in Air Heated Dump?", type: "mcq", opt_ar: ["5 mins", "12 mins", "20 mins"], opt_en: ["5 mins", "12 mins", "20 mins"], a: "12 mins" },
+        { q_ar: "ما هي مدة حفظ حلقات البصل (Onion Rings) داخل الـ MPHU؟", q_en: "Max holding time for Onion Rings in MPHU?", type: "mcq", opt_ar: ["20 mins", "30 mins", "40 mins"], opt_en: ["20 mins", "30 mins", "40 mins"], a: "20 mins" },
+        { q_ar: "كم ساعة يحتاجها الخبز (Buns) والتورتيلا ليذوب تماماً (Thawing Time)؟", q_en: "Thawing time for Buns & Tortilla?", type: "mcq", opt_ar: ["4 Hours", "8 Hours", "12 Hours"], opt_en: ["4 Hours", "8 Hours", "12 Hours"], a: "12 Hours" },
+        { q_ar: "ما هو وقت استخدام الخبز المذاب الجاهز للاستعمال (Time in use)؟", q_en: "In use time for thawed Buns?", type: "mcq", opt_ar: ["24 Hours", "40 Hours", "60 Hours"], opt_en: ["24 Hours", "40 Hours", "60 Hours"], a: "60 Hours" },
+        { q_ar: "كم ساعة يحتاجها البراونيز والمافن للتذويب (Thawing)؟", q_en: "Thawing time for Brownies / Muffins?", type: "mcq", opt_ar: ["4 hours", "8 hours", "12 hours"], opt_en: ["4 hours", "8 hours", "12 hours"], a: "8 hours" },
+        { q_ar: "ما هي مدة صلاحية استخدام الكاتشب في أكياس الـ Volpack؟", q_en: "Shelf life of Ketchup in Volpack?", type: "mcq", opt_ar: ["7 days", "14 days", "24 hours"], opt_en: ["7 days", "14 days", "24 hours"], a: "14 days" },
+        { q_ar: "ما هي مدة صلاحية الكاتشب عند تعبئته في زجاجات (Bottles)؟", q_en: "Shelf life of Ketchup in Bottles?", type: "mcq", opt_ar: ["24 hours", "7 days", "10 days"], opt_en: ["24 hours", "7 days", "10 days"], a: "24 hours" },
+        { q_ar: "ما هي صلاحية المايونيز والبيج كينج صوص عند فتح العبوة في الـ Bulk؟", q_en: "Shelf life of Mayo & Big King sauce in Bulk?", type: "mcq", opt_ar: ["3 Days", "7 Days", "15 Days"], opt_en: ["3 Days", "7 Days", "15 Days"], a: "7 Days" },
+        { q_ar: "ما هي صلاحية صوص النار (Fiery Sauce) في الـ Bulk؟", q_en: "Shelf life of Fiery Sauce in Bulk?", type: "mcq", opt_ar: ["7 Days", "10 Days", "15 Days"], opt_en: ["7 Days", "10 Days", "15 Days"], a: "15 Days" },
+        { q_ar: "ما هي مدة صلاحية عبوة الجبن المفتوحة داخل المقلاة (In Pan)؟", q_en: "Shelf life of open pack of cheese in pan?", type: "mcq", opt_ar: ["4 Hours", "24 Hours", "3 Days"], opt_en: ["4 Hours", "24 Hours", "3 Days"], a: "24 Hours" },
+        { q_ar: "ما هي صلاحية الجبن عند وضعه في الـ Board للاستخدام؟", q_en: "Shelf life of Cheese on Board?", type: "mcq", opt_ar: ["4 Hours", "8 Hours", "24 Hours"], opt_en: ["4 Hours", "8 Hours", "24 Hours"], a: "4 Hours" },
+        { q_ar: "ما هي صلاحية الأدوات والملعقات (All Utensils) قبل الحاجة للغسيل؟", q_en: "Shelf life of All Utensils before washing?", type: "mcq", opt_ar: ["2 Hours", "4 Hours", "8 Hours"], opt_en: ["2 Hours", "4 Hours", "8 Hours"], a: "4 Hours" },
+        { q_ar: "ما هي صلاحية الحليب (Milk) عند وضعه داخل ماكينة الآيس كريم؟", q_en: "Shelf life of Milk inside the machine?", type: "mcq", opt_ar: ["24 hours", "3 days", "7 days"], opt_en: ["24 hours", "3 days", "7 days"], a: "24 hours" },
+        { q_ar: "ما هي مدة صلاحية زجاجة البيبسي بعد صبها في الكوب (Cola cup)؟", q_en: "Discard time for Cola cup?", type: "mcq", opt_ar: ["5 minutes", "15 minutes", "30 minutes"], opt_en: ["5 minutes", "15 minutes", "30 minutes"], a: "5 minutes" },
+        { q_ar: "ما هي درجة الحرارة الدنيا لطهي اللحم مئوية (Beef cook-out)؟", q_en: "Minimum Beef cook-out temperature (Celsius)?", type: "write", a: "68" },
+        { q_ar: "درجة حرارة منطقة الخطر للبكتيريا (Danger Zone) هي فوق 4 وأقل من:", q_en: "Danger Zone is above 4 and below:", type: "write", a: "65" },
+        { q_ar: "ما هي درجة حرارة زيت المقلاة القياسية مئوية (Fry-vat)؟", q_en: "Standard Fry-vat oil temperature (Celsius)?", type: "write", a: "172" },
+        { q_ar: "ما هي درجة الحرارة الدنيا لمياه غسيل اليدين مئوية؟", q_en: "Minimum hand wash water temperature (Celsius)?", type: "write", a: "38" },
+        { q_ar: "ما هي نسبة تخفيف مادة تنظيف الجريل المحترق Suma Grill D9 (لتر إلى ماء)؟", q_en: "Suma Grill D9 dilution ratio (Litre to Water)?", type: "write", a: "1:10" },
+        { q_ar: "عند طلب زبون لـ (Heavy Condiment) كم النسبة المضافة إضافياً؟", q_en: "How much more condiment is added for Heavy request?", type: "write", a: "50%" },
+        { q_ar: "ما هو الحرف الذي يتم كتابته على الغلاف عند طلب زبون لـ Light Condiment؟", q_en: "Which letter is marked on the wrap for Light condiment?", type: "write", a: "L" },
+        { q_ar: "ما هو الرمز المكتوب على غلاف السندوتش لطلب Plain بدون أي صوصات؟", q_en: "What is the mark for Plain sandwich request?", type: "write", a: "line" },
+        { q_ar: "ماذا يعني الاختصار الشهير FIFO؟", q_en: "What does FIFO stand for?", type: "write", a: "first in first out" },
+        { q_ar: "ماذا يعني الاختصار الخاص بسرعة الخدمة SOS؟", q_en: "What does SOS stand for?", type: "write", a: "speed of service" },
+        { q_ar: "ماذا يعني الاختصار الخاص بغسيل وتنظيف الأدوات WRS؟", q_en: "What does WRS stand for?", type: "write", a: "wash rinse sanitize" },
+        { q_ar: "ماذا يعني الاختصار الخاص بالإجراء الطارئ للخبز PTD؟", q_en: "What does PTD stand for?", type: "write", a: "pull thaw discard" },
+        { q_ar: "ماذا يعني اختصار التعامل مع شكاوى الضيوف BLAST؟", q_en: "What does BLAST stand for?", type: "write", a: "believe listen apologise satisfy thank" },
+        { q_ar: "ما هو نوع مطفأة الحريق المستخدمة للحرائق الكهربائية (Electrical based fires)؟", q_en: "Fire extinguisher type used for electrical fires?", type: "write", a: "carbon dioxide" },
+        { q_ar: "ما هو نوع مطفأة الحريق المناسبة لحرائق الزيوت والشحوم فوق المقالي (Grease, oil fires)؟", q_en: "Fire extinguisher type used over fryers and broilers?", type: "write", a: "foam" }
+      ];
+
+    function shuffleArray(array) {
+        for (let i = array.length - 1; i > 0; i--) {
+            const j = Math.floor(Math.random() * (i + 1));
+            [array[i], array[j]] = [array[j], array[i]];
+        }
+        return array;
+    }
+
+    function init() {
+        const data = localStorage.getItem('bk_duhok_v5_max_comprehensive');
+        if (data) {
+            users = JSON.parse(data);
+        } else {
+            users = [{id: '100156', name: 'Store Manager', pass: '12345', role: 'admin', result: '-'}];
+            localStorage.setItem('bk_duhok_v5_max_comprehensive', JSON.stringify(users));
+        }
+    }
+
+    function setLang(l) {
+        currentLang = l;
+        document.body.className = l === 'ar' ? 'ar-mode' : 'en-mode';
+        document.getElementById('view-lang').classList.add('hidden');
+        document.getElementById('view-login').classList.remove('hidden');
+        
+        const ui = {
+            ar: { head: "تسجيل الدخول للنظام", btn: "دخول", adm: "لوحة تحكم مدير المتجر (Store Manager)" },
+            en: { head: "Staff Login Portal", btn: "Login", adm: "Store Manager Dashboard" }
+        };
+        document.getElementById('txt-login-head').innerText = ui[l].head;
+        document.getElementById('btn-login-exec').innerText = ui[l].btn;
+        document.getElementById('admin-title').innerText = ui[l].adm;
+    }
+
+    function handleLogin() {
+        const id = document.getElementById('login-id').value;
+        const pass = document.getElementById('login-pass').value;
+        sessionUser = users.find(u => u.id === id && u.pass === pass);
+        
+        if (sessionUser) {
+            if (sessionUser.role === 'admin') {
+                showView('view-admin'); renderUsers();
+            } else {
+                startExam();
+            }
+        } else {
+            alert(currentLang === 'ar' ? "ID أو كلمة السر غير صحيحة!" : "Invalid ID or Password!");
+        }
+    }
+
+    function startExam() {
+        showView('view-exam');
+        document.getElementById('active-user-display').innerText = sessionUser.name;
+        
+        let shuffledBank = shuffleArray([...MASTER_BANK]);
+        currentExam = shuffledBank.slice(0, 20); 
+        
+        currentIdx = 0; score = 0; mistakes = []; showQuestion();
+    }
+
+    function showQuestion() {
+        const q = currentExam[currentIdx];
+        document.getElementById('q-count').innerText = `${currentIdx + 1} / 20`;
+        document.getElementById('q-text').innerText = currentLang === 'ar' ? q.q_ar : q.q_en;
+        
+        const optArea = document.getElementById('options-area');
+        const writeArea = document.getElementById('write-area');
+        const nextBtn = document.getElementById('next-btn');
+
+        optArea.innerHTML = ''; writeArea.classList.add('hidden'); nextBtn.classList.add('hidden');
+
+        if (q.type === 'mcq') {
+            const opts = currentLang === 'ar' ? q.opt_ar : q.opt_en;
+            opts.forEach(o => {
+                const b = document.createElement('button');
+                b.className = 'option-btn';
+                b.innerText = o;
+                b.onclick = () => check(o);
+                optArea.appendChild(b);
+            });
+        } else {
+            writeArea.classList.remove('hidden'); nextBtn.classList.remove('hidden');
+            writeArea.value = ''; writeArea.focus();
+        }
+    }
+
+    function check(ans) {
+        const q = currentExam[currentIdx];
+        const correct = q.a.toLowerCase().trim();
+        const userAns = ans.toString().toLowerCase().trim();
+
+        if (userAns.includes(correct) || correct.includes(userAns)) {
+            score++;
+        } else {
+            mistakes.push({q: (currentLang === 'ar' ? q.q_ar : q.q_en), a: q.a, u: ans});
+        }
+        currentIdx++;
+        if (currentIdx < 20 && currentIdx < currentExam.length) showQuestion(); else finish();
+    }
+
+    function submitTextAnswer() {
+        const val = document.getElementById('write-area').value;
+        if (val) check(val);
+    }
+
+    function finish() {
+        showView('view-result');
+        const p = Math.round((score / Math.min(20, currentExam.length)) * 100);
+        document.getElementById('score-val').innerText = p + "%";
+        
+        const idx = users.findIndex(u => u.id === sessionUser.id);
+        users[idx].result = p + "%";
+        localStorage.setItem('bk_duhok_v5_max_comprehensive', JSON.stringify(users));
+
+        let h = "<h4>Review Mistakes / مراجعة الأخطاء:</h4>";
+        mistakes.forEach(m => h += `<div style="border-bottom:1px solid #eee; padding:8px;"><b>${m.q}</b><br><span style="color:red">X Your Answer: ${m.u}</span> | <span style="color:green">✓ Correct Answer: ${m.a}</span></div>`);
+        document.getElementById('result-details').innerHTML = h || "Perfect! No mistakes. / نتيجة ممتازة، لا توجد أخطاء.";
+    }
+
+    function addUser() {
+        const id = document.getElementById('new-id').value;
+        const name = document.getElementById('new-name').value;
+        const pass = document.getElementById('new-pass').value;
+        const role = document.getElementById('new-role').value;
+        if(!id || !name || !pass) return alert("Please fill all fields / يرجى إدخل جميع الحقول");
+        
+        const existingIdx = users.findIndex(u => u.id === id);
+        if(existingIdx >= 0) {
+            users[existingIdx] = {id, name, pass, role, result: users[existingIdx].result};
+        } else {
+            users.push({id, name, pass, role, result: '-'});
+        }
+        localStorage.setItem('bk_duhok_v5_max_comprehensive', JSON.stringify(users));
+        renderUsers();
+        alert("Saved successfully / تم الحفظ والادراج بنجاح");
+        document.getElementById('new-id').value = '';
+        document.getElementById('new-name').value = '';
+        document.getElementById('new-pass').value = '';
+    }
+
+    function renderUsers() {
+        const list = document.getElementById('users-list');
+        list.innerHTML = '';
+        users.forEach(u => {
+            list.innerHTML += `<tr><td>${u.id}</td><td>${u.name}</td><td>${u.role}</td><td>${u.pass}</td><td>${u.result}</td><td><button onclick="delUser('${u.id}')" style="background:red; color:white; border:none; padding:3px 8px; border-radius:5px; cursor:pointer;">X</button></td></tr>`;
+        });
+    }
+
+    function delUser(id) {
+        if(id === sessionUser.id) return alert("Cannot delete your own active account!");
+        if(confirm("Are you sure you want to delete this user?")) {
+            users = users.filter(u => u.id !== id);
+            localStorage.setItem('bk_duhok_v5_max_comprehensive', JSON.stringify(users));
+            renderUsers();
+        }
+    }
+
+    function showView(id) {
+        document.querySelectorAll('.container').forEach(v => v.classList.add('hidden'));
+        document.getElementById(id).classList.remove('hidden');
+    }
+
+    function resetData() {
+        if(confirm("Warning! This will clear all data and employees. Reset?")) { localStorage.clear(); location.reload(); }
+    }
+
+    init();
+</script>
+</body>
+</html>

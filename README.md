@@ -1,1 +1,0 @@
-# bk-duhok-exam
